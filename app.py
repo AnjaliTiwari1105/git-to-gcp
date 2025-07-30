@@ -11,10 +11,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def fetch_and_store():
-    # Use basic logging with custom fields
     logger.info(logField="custom-entry", arbitraryField="custom-entry")
-
-    # https://cloud.google.com/run/docs/logging#correlate-logs
     logger.info("Child logger with trace Id.")
 
     try:
@@ -22,6 +19,14 @@ def fetch_and_store():
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
+
+        # Remove 'events.overrides.scoring' if it exists and is empty
+        for event in data.get("events", []):
+            overrides = event.get("overrides", {})
+            if isinstance(overrides, dict):
+                scoring = overrides.get("scoring")
+                if scoring == {}:
+                    del overrides["scoring"]
 
         client = storage.Client()
         bucket = client.bucket("fpl-data-bucket-anjali")
@@ -32,6 +37,7 @@ def fetch_and_store():
 
     except Exception as e:
         return f"Error: {str(e)}", 500
+
 
 def shutdown_handler(signal_int: int, frame: FrameType) -> None:
     logger.info(f"Caught Signal {signal.strsignal(signal_int)}")
