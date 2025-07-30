@@ -2,16 +2,6 @@ import signal
 import sys
 import json
 import requests
-from types -> None:
-    logger.info(f"Caught Signal {signal.strsignal(signal_int)}")
-    flush()
-    sys.exit(0)
-
-if __name__ == "__main__":
-    signal.signal(signal.SIGINT, shutdown_handler)
-    app.run(host="localhost", port=8080, debug=True)
-else:
-    signal.signal(signal.SIGTERM, shutdown_handler)
 from types import FrameType
 from flask import Flask, request
 from google.cloud import storage
@@ -54,6 +44,16 @@ def fetch_and_store():
         return "Cleaned data uploaded to Cloud Storage", 200
 
     except Exception as e:
+        logger.error(f"Error during fetch and store: {str(e)}")
         return f"Error: {str(e)}", 500
 
-def shutdown_handler(signal_int: int, frame: FrameType)
+def shutdown_handler(signal_int: int, frame: FrameType) -> None:
+    logger.info(f"Caught Signal {signal.strsignal(signal_int)}")
+    flush()
+    sys.exit(0)
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, shutdown_handler)
+    app.run(host="localhost", port=8080, debug=True)
+else:
+    signal.signal(signal.SIGTERM, shutdown_handler)
