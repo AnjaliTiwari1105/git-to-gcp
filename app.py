@@ -2,33 +2,7 @@ import signal
 import sys
 import json
 import requests
-from types import FrameType
-from flask import Flask, request
-from google.cloud import storage
-from utils.logging import logger, flush
-
-app = Flask(__name__)
-
-@app.route("/", methods=["GET"])
-def fetch_and_store():
-    logger.info(logField="custom-entry", arbitraryField="custom-entry")
-    logger.info("Child logger with trace Id.")
-
-    try:
-        url = "https://fantasy.premierleague.com/api/bootstrap-static/"
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-
-        # Remove empty 'scoring' fields under 'events.overrides'
-        for event in data.get("events", []):
-            overrides = event.get("overrides")
-            if isinstance(overrides, dict) and "scoring" in overrides:
-                scoring = overrides["scoring"]
-                if scoring is None or scoring == {}:
-                    del overrides["scoring"]
-
-        client = storage.Client()
+from client = storage.Client()
         bucket = client.bucket("fpl-data-bucket-anjali")
         blob = bucket.blob("fpl_data.json")
         blob.upload_from_string(data=json.dumps(data), content_type="application/json")
@@ -50,3 +24,30 @@ if __name__ == "__main__":
 else:
     # handles Cloud Run container termination
     signal.signal(signal.SIGTERM, shutdown_handler)
+from types import FrameType
+from flask import Flask, request
+from google.cloud import storage
+from utils.logging import logger, flush
+
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def fetch_and_store():
+    logger.info(logField="custom-entry", arbitraryField="custom-entry")
+    logger.info("Child logger with trace Id.")
+
+    try:
+        url = "https://fantasy.premierleague.com/api/bootstrap-static/"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        # Remove empty 'scoring' and 'rules' fields under 'events.overrides'
+        for event in data.get("events", []):
+            overrides = event.get("overrides")
+            if isinstance(overrides, dict):
+                for key in ["scoring", "rules"]:
+                    if key in overrides and (overrides[key] is None or overrides[key] == {}):
+                        del overrides[key]
+
+       
