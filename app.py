@@ -20,12 +20,12 @@ def fetch_and_store():
         response.raise_for_status()
         data = response.json()
 
-        # Remove 'events.overrides.scoring' if it exists and is empty
+        # Remove empty 'scoring' fields under 'events.overrides'
         for event in data.get("events", []):
-            overrides = event.get("overrides", {})
-            if isinstance(overrides, dict):
-                scoring = overrides.get("scoring")
-                if scoring == {}:
+            overrides = event.get("overrides")
+            if isinstance(overrides, dict) and "scoring" in overrides:
+                scoring = overrides["scoring"]
+                if scoring is None or scoring == {}:
                     del overrides["scoring"]
 
         client = storage.Client()
@@ -37,7 +37,6 @@ def fetch_and_store():
 
     except Exception as e:
         return f"Error: {str(e)}", 500
-
 
 def shutdown_handler(signal_int: int, frame: FrameType) -> None:
     logger.info(f"Caught Signal {signal.strsignal(signal_int)}")
