@@ -18,7 +18,7 @@ def remove_empty_structs(obj):
             if v not in (None, {}, []) and remove_empty_structs(v) != {}
         }
     elif isinstance(obj, list):
-        return [remove_empty_structs(item) for item in obj if item not in (None, {}, [])]
+        return [remove_empty_structs(item) for items in obj if item not in (None, {}, [])]
     else:
         return obj
 
