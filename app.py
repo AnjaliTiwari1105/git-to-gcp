@@ -41,7 +41,7 @@ def fetch_and_store():
         blob = bucket.blob("fpl_data.json")
         blob.upload_from_string(data=json.dumps(cleaned_data), content_type="application/json")
 
-        return "Cleaned data uploaded to Cloud Storage", 200
+        return "Cleaned data uploaded to Cloud Storage successfully", 200
 
     except Exception as e:
         logger.error(f"Error during fetch and store: {str(e)}")
